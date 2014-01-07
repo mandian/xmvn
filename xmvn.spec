@@ -1,7 +1,7 @@
-%_javapackages_macros
+%{?_javapackages_macros:%_javapackages_macros}
 Name:           xmvn
-Version:        1.4.0
-Release:        1.0%{?dist}
+Version:        1.3.0
+Release:        2.1%{?dist}
 Summary:        Local Extensions for Apache Maven
 License:        ASL 2.0
 URL:            http://mizdebsk.fedorapeople.org/xmvn
@@ -44,6 +44,7 @@ mver=$(sed -n '/<mavenVersion>/{s/.*>\(.*\)<.*/\1/;p}' \
            xmvn-parent/pom.xml)
 mkdir -p target/dependency/
 ln -s %{_datadir}/maven target/dependency/apache-maven-$mver
+
 
 # skip ITs for now (mix of old & new XMvn config causes issues
 rm -rf src/it
@@ -141,3 +142,196 @@ end
 
 %files javadoc -f .mfiles-javadoc
 %doc LICENSE NOTICE
+
+%changelog
+* Fri Nov  8 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.3.0-2
+- Add wagon-http-shared4 to plexus.core
+
+* Wed Nov 06 2013 Stanislav Ochotnicky <sochotnicky@redhat.com> - 1.3.0-1
+- Update to upstream release 1.3.0
+
+* Tue Nov  5 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.2.0-5
+- Require Maven >= 3.1.1-5
+- Resolves: rhbz#1014355
+
+* Wed Oct 23 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.2.0-4
+- Rebuild to regenerate broken POMs
+- Related: rhbz#1021484
+
+* Wed Oct 23 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.2.0-3
+- Temporarly skip running tests
+
+* Wed Oct 23 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.2.0-2
+- Don't inject manifest if it does not already exist
+- Resolves: rhbz#1021484
+
+* Fri Oct 18 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.2.0-1
+- Update to upstream version 1.2.0
+
+* Mon Oct 07 2013 Stanislav Ochotnicky <sochotnicky@redhat.com> - 1.1.0-2
+- Apply patch for rhbz#1015596
+
+* Tue Oct 01 2013 Stanislav Ochotnicky <sochotnicky@redhat.com> - 1.1.0-1
+- Update to upstream version 1.1.0
+
+* Fri Sep 27 2013 Stanislav Ochotnicky <sochotnicky@redhat.com> - 1.0.2-3
+- Add __default package specifier support
+
+* Mon Sep 23 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.0.2-2
+- Don't try to relativize symlink targets
+- Restotre support for relative symlinks
+
+* Fri Sep 20 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.0.2-1
+- Update to upstream version 1.0.2
+
+* Tue Sep 10 2013 Stanislav Ochotnicky <sochotnicky@redhat.com> - 1.0.0-2
+- Workaround broken symlinks for core and connector (#986909)
+
+* Mon Sep 09 2013 Stanislav Ochotnicky <sochotnicky@redhat.com> - 1.0.0-1
+- Updating to upstream 1.0.0
+
+* Tue Sep  3 2013 Stanislav Ochotnicky <sochotnicky@redhat.com> 1.0.0-0.2.alpha1
+- Update to upstream version 1.0.0 alpha1
+
+* Sun Aug 04 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.5.1-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
+
+* Tue Jul 23 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.5.1-3
+- Rebuild without bootstrapping
+
+* Tue Jul 23 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.5.1-2
+- Install symlink to simplelogger.properties in %{_sysconfdir}
+
+* Tue Jul 23 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.5.1-1
+- Update to upstream version 0.5.1
+
+* Tue Jul 23 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.5.0-7
+- Allow installation of Eclipse plugins in javadir
+
+* Mon Jul 22 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.5.0-6
+- Remove workaround for plexus-archiver bug
+- Use sonatype-aether symlinks
+
+* Wed Jun  5 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.5.0-5
+- Fix resolution of tools.jar
+
+* Fri May 31 2013 Stanislav Ochotnicky <sochotnicky@redhat.com> - 0.5.0-4
+- Fix handling of packages with dots in groupId
+- Previous versions also fixed bug #948731
+
+* Tue May 28 2013 Stanislav Ochotnicky <sochotnicky@redhat.com> - 0.5.0-3
+- Move pre scriptlet to pretrans and implement in lua
+
+* Fri May 24 2013 Stanislav Ochotnicky <sochotnicky@redhat.com> - 0.5.0-2
+- Fix upgrade path scriptlet
+- Add patch to fix NPE when debugging is disabled
+
+* Fri May 24 2013 Stanislav Ochotnicky <sochotnicky@redhat.com> - 0.5.0-1
+- Update to upstream version 0.5.0
+
+* Fri May 17 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.4.2-3
+- Add patch: install MOJO fix
+
+* Wed Apr 17 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.4.2-2
+- Update plexus-containers-container-default JAR location
+
+* Tue Apr  9 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.4.2-1
+- Update to upstream version 0.4.2
+
+* Thu Mar 21 2013 Michal Srb <msrb@redhat.com> - 0.4.1-1
+- Update to upstream version 0.4.1
+
+* Fri Mar 15 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.4.0-1
+- Update to upstream version 0.4.0
+
+* Fri Mar 15 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.4.0-0.7
+- Enable tests
+
+* Thu Mar 14 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.4.0-0.6
+- Update to newer snapshot
+
+* Wed Mar 13 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.4.0-0.5
+- Update to newer snapshot
+
+* Wed Mar 13 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.4.0-0.4
+- Set proper permissions for scripts in _bindir
+
+* Tue Mar 12 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.4.0-0.3
+- Update to new upstream snapshot
+- Create custom /usr/bin/xmvn instead of using %%jpackage_script
+- Mirror maven directory structure
+- Add Plexus Classworlds config file
+
+* Wed Mar  6 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.4.0-0.2
+- Update to newer snapshot
+
+* Wed Mar  6 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.4.0-0.1
+- Update to upstream snapshot of version 0.4.0
+
+* Mon Feb 25 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.3.1-2
+- Install effective POMs into a separate directory
+
+* Thu Feb  7 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.3.1-1
+- Update to upstream version 0.3.1
+
+* Tue Feb  5 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.3.0-1
+- Update to upstream version 0.3.0
+- Don't rely on JPP symlinks when resolving artifacts
+- Blacklist more artifacts
+- Fix dependencies
+
+* Thu Jan 24 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.2.6-1
+- Update to upstream version 0.2.6
+
+* Mon Jan 21 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.2.5-1
+- Update to upstream version 0.2.5
+
+* Fri Jan 11 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.2.4-1
+- Update to upstream version 0.2.4
+
+* Wed Jan  9 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.2.3-1
+- Update to upstream version 0.2.3
+
+* Tue Jan  8 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.2.2-1
+- Update to upstream version 0.2.2
+
+* Tue Jan  8 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.2.1-1
+- Update to upstream version 0.2.1
+
+* Mon Jan  7 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.2.0-1
+- Update to upstream version 0.2.0
+- New major features: depmaps, compat symlinks, builddep MOJO
+- Install effective POMs for non-POM artifacts
+- Multiple major and minor bugfixes
+- Drop support for resolving artifacts from %%_javajnidir
+
+* Fri Dec  7 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.1.5-1
+- Update to upstream version 0.1.5
+
+* Fri Dec  7 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.1.4-1
+- Update to upstream version 0.1.4
+
+* Fri Dec  7 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.1.3-1
+- Update to upstream version 0.1.3
+
+* Fri Dec  7 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.1.2-1
+- Update to upstream version 0.1.2
+
+* Fri Dec  7 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.1.1-1
+- Update to upstream version 0.1.1
+
+* Thu Dec  6 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.1.0-1
+- Update to upstream version 0.1.0
+- Implement auto requires generator
+
+* Mon Dec  3 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.0.2-1
+- Update to upstream version 0.0.2
+
+* Thu Nov 29 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0.0.1-1
+- Update to upstream version 0.0.1
+
+* Wed Nov 28 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0-2
+- Add jpackage scripts
+
+* Mon Nov  5 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0-1
+- Initial packaging
