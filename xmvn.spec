@@ -1,12 +1,16 @@
 %{?_javapackages_macros:%_javapackages_macros}
 Name:           xmvn
-Version:        1.3.0
-Release:        2.1%{?dist}
+Version:        1.5.0
+Release:        0.20.gitcb3a0a6.0%{?dist}
 Summary:        Local Extensions for Apache Maven
 License:        ASL 2.0
 URL:            http://mizdebsk.fedorapeople.org/xmvn
 BuildArch:      noarch
-Source0:        https://fedorahosted.org/released/%{name}/%{name}-%{version}.tar.xz
+#Source0:        https://fedorahosted.org/released/%{name}/%{name}-%{version}.tar.xz
+
+# git clone git://git.fedorahosted.org/git/%{name}.git
+# (cd ./%{name} && git archive --format tar --prefix %{name}-%{version}/ cb3a0a6 | xz) >%{name}-%{version}-SNAPSHOT.tar.xz
+Source0:        %{name}-%{version}-SNAPSHOT.tar.xz
 
 BuildRequires:  maven >= 3.1.1-13
 BuildRequires:  maven-local
@@ -44,7 +48,6 @@ mver=$(sed -n '/<mavenVersion>/{s/.*>\(.*\)<.*/\1/;p}' \
            xmvn-parent/pom.xml)
 mkdir -p target/dependency/
 ln -s %{_datadir}/maven target/dependency/apache-maven-$mver
-
 
 # skip ITs for now (mix of old & new XMvn config causes issues
 rm -rf src/it
@@ -135,6 +138,7 @@ for key, dir in pairs({"conf", "conf/logging", "boot"}) do
 end
 
 %files -f .mfiles
+%dir %{_javadir}/%{name}
 %doc LICENSE NOTICE
 %doc AUTHORS README
 %attr(755,-,-) %{_bindir}/*
@@ -144,6 +148,21 @@ end
 %doc LICENSE NOTICE
 
 %changelog
+* Wed Feb 19 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.5.0-0.20.gitcb3a0a6
+- Fix unowned directory
+
+* Tue Jan 14 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.5.0-0.19.gitcb3a0a6
+- Update to pre-release of upstream version 1.5.0
+
+* Mon Dec  9 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.4.0-1
+- Update to upstream version 1.4.0
+
+* Thu Nov 14 2013 Michael Simacek <msimacek@redhat.com> - 1.3.0-4
+- Update to Sisu 0.1.0
+
+* Thu Nov 14 2013 Michal Srb <msrb@redhat.com> - 1.3.0-3
+- Add dep org.sonatype.sisu:sisu-guice::no_aop:
+
 * Fri Nov  8 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.3.0-2
 - Add wagon-http-shared4 to plexus.core
 
