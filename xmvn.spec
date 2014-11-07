@@ -1,7 +1,7 @@
 %{?_javapackages_macros:%_javapackages_macros}
 Name:           xmvn
 Version:        1.5.0
-Release:        0.20.gitcb3a0a6.0%{?dist}
+Release:        0.21.gitcb3a0a6.0%{?dist}
 Summary:        Local Extensions for Apache Maven
 License:        ASL 2.0
 URL:            http://mizdebsk.fedorapeople.org/xmvn
@@ -56,7 +56,7 @@ rm -rf src/it
 # XXX some tests fail on ARM for unknown reason, see why
 %mvn_build -f
 
-tar --delay-directory-restore -xvf target/*tar.bz2
+tar -xvf target/*tar.bz2
 chmod -R +rwX %{name}-%{version}*
 
 
