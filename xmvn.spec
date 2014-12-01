@@ -1,23 +1,24 @@
 %{?_javapackages_macros:%_javapackages_macros}
+# XMvn uses OSGi environment provided by Tycho, it shouldn't require
+# any additional bundles.
+%global __requires_exclude %{?__requires_exclude:%__requires_exclude|}^osgi\\($
+
 Name:           xmvn
-Version:        1.5.0
-Release:        0.25.gitcb3a0a6%{?dist}
+Version:        2.1.0
+Release:        6%{?dist}
 Summary:        Local Extensions for Apache Maven
 License:        ASL 2.0
 URL:            http://mizdebsk.fedorapeople.org/xmvn
 BuildArch:      noarch
-#Source0:        https://fedorahosted.org/released/%{name}/%{name}-%{version}.tar.xz
 
-# git clone git://git.fedorahosted.org/git/%{name}.git
-# (cd ./%{name} && git archive --format tar --prefix %{name}-%{version}/ cb3a0a6 | xz) >%{name}-%{version}-SNAPSHOT.tar.xz
-Source0:        %{name}-%{version}-SNAPSHOT.tar.xz
+Source0:        https://fedorahosted.org/released/%{name}/%{name}-%{version}.tar.xz
 
-Patch0:         0001-Don-t-install-artifacts-which-are-not-regular-files.patch
-Patch1:         0002-Protect-against-NPE-in-Install-MOJO.patch
-Patch2:         0003-Override-extensions-of-skipped-artifacts.patch
-Patch3:         0004-Use-ASM-5.0.1-directly-instead-of-Sisu-shaded-ASM.patch
+Patch0:         0001-Avoid-installing-the-same-attached-artifact-twice.patch
+Patch1:         0002-Fix-installation-of-attached-Eclipse-artifacts.patch
+Patch2:         0003-Fix-conversion-of-Ivy-to-XMvn-artifacts.patch
+Patch3:         0004-Use-topmost-repository-namespace-during-installation.patch
 
-BuildRequires:  maven >= 3.1.1-13
+BuildRequires:  maven >= 3.2.1-10
 BuildRequires:  maven-local
 BuildRequires:  beust-jcommander
 BuildRequires:  cglib
@@ -26,16 +27,116 @@ BuildRequires:  maven-plugin-build-helper
 BuildRequires:  maven-assembly-plugin
 BuildRequires:  maven-invoker-plugin
 BuildRequires:  objectweb-asm
+BuildRequires:  modello
 BuildRequires:  xmlunit
-BuildRequires:  mvn(org.codehaus.modello:modello-maven-plugin)
+BuildRequires:  apache-ivy
+BuildRequires:  sisu-mojos
+BuildRequires:  junit
 
-Requires:       maven >= 3.1.1-13
+Requires:       maven >= 3.2.2
+Requires:       xmvn-api = %{version}-%{release}
+Requires:       xmvn-connector-aether = %{version}-%{release}
+Requires:       xmvn-core = %{version}-%{release}
 
 %description
 This package provides extensions for Apache Maven that can be used to
 manage system artifact repository and use it to resolve Maven
 artifacts in offline mode, as well as Maven plugins to help with
 creating RPM packages containing Maven artifacts.
+
+%package        parent-pom
+Summary:        XMvn Parent POM
+
+%description    parent-pom
+This package provides XMvn parent POM.
+
+%package        api
+Summary:        XMvn API
+
+%description    api
+This package provides XMvn API module which contains public interface
+for functionality implemented by XMvn Core.
+
+%package        launcher
+Summary:        XMvn Launcher
+
+%description    launcher
+This package provides XMvn Launcher module, which provides a way of
+launching XMvn running in isolated class realm and locating XMVn
+services.
+
+%package        core
+Summary:        XMvn Core
+
+%description    core
+This package provides XMvn Core module, which implements the essential
+functionality of XMvn such as resolution of artifacts from system
+repository.
+
+%package        connector-aether
+Summary:        XMvn Connector for Eclipse Aether
+
+%description    connector-aether
+This package provides XMvn Connector for Eclipse Aether, which
+provides integration of Eclipse Aether with XMvn.  It provides an
+adapter which allows XMvn resolver to be used as Aether workspace
+reader.
+
+%package        connector-ivy
+Summary:        XMvn Connector for Apache Ivy
+
+%description    connector-ivy
+This package provides XMvn Connector for Apache Ivy, which provides
+integration of Apache Ivy with XMvn.  It provides an adapter which
+allows XMvn resolver to be used as Ivy resolver.
+
+%package        mojo
+Summary:        XMvn MOJO
+
+%description    mojo
+This package provides XMvn MOJO, which is a Maven plugin that consists
+of several MOJOs.  Some goals of these MOJOs are intended to be
+attached to default Maven lifecycle when building packages, others can
+be called directly from Maven command line.
+
+%package        tools-pom
+Summary:        XMvn Tools POM
+
+%description    tools-pom
+This package provides XMvn Tools parent POM.
+
+%package        resolve
+Summary:        XMvn Resolver
+
+%description    resolve
+This package provides XMvn Resolver, which is a very simple
+commald-line tool to resolve Maven artifacts from system repositories.
+Basically it's just an interface to artifact resolution mechanism
+implemented by XMvn Core.  The primary intended use case of XMvn
+Resolver is debugging local artifact repositories.
+
+%package        bisect
+Summary:        XMvn Bisect
+
+%description    bisect
+This package provides XMvn Bisect, which is a debugging tool that can
+diagnose build failures by using bisection method.
+
+%package        subst
+Summary:        XMvn Subst
+
+%description    subst
+This package provides XMvn Subst, which is a tool that can substitute
+Maven artifact files with symbolic links to corresponding files in
+artifact repository.
+
+%package        install
+Summary:        XMvn Install
+
+%description    install
+This package provides XMvn Install, which is a command-line interface
+to XMvn installer.  The installer reads reactor metadata and performs
+artifact installation according to specified configuration.
 
 %package        javadoc
 Summary:        API documentation for %{name}
@@ -50,6 +151,11 @@ This package provides %{summary}.
 %patch2 -p1
 %patch3 -p1
 
+%mvn_package :xmvn __noinstall
+
+# In XMvn 2.x xmvn-connector was renamed to xmvn-connector-aether
+%mvn_alias :xmvn-connector-aether :xmvn-connector
+
 # remove dependency plugin maven-binaries execution
 # we provide apache-maven by symlink
 %pom_xpath_remove "pom:executions/pom:execution[pom:id[text()='maven-binaries']]"
@@ -58,20 +164,22 @@ This package provides %{summary}.
 mver=$(sed -n '/<mavenVersion>/{s/.*>\(.*\)<.*/\1/;p}' \
            xmvn-parent/pom.xml)
 mkdir -p target/dependency/
-ln -s %{_datadir}/maven target/dependency/apache-maven-$mver
+cp -aL %{_datadir}/maven target/dependency/apache-maven-$mver
 
-# skip ITs for now (mix of old & new XMvn config causes issues
+# skip ITs for now (mix of old & new XMvn config causes issues)
 rm -rf src/it
 
 # probably bug in configuration/modello?
-sed -i 's|generated-site/xsd/config|generated-site/resources/xsd/config|' xmvn-core/pom.xml
+sed -i 's|generated-site/resources/xsd/config|generated-site/xsd/config|' xmvn-core/pom.xml
 
 %build
 # XXX some tests fail on ARM for unknown reason, see why
-%mvn_build -f
+%mvn_build -s -f
 
 tar -xvf target/*tar.bz2
 chmod -R +rwX %{name}-%{version}*
+# These are installed as doc
+rm -Rf %{name}-%{version}*/{AUTHORS,README,LICENSE,NOTICE}
 
 
 %install
@@ -86,20 +194,12 @@ ln -sf %{_datadir}/maven/bin/mvnyjp %{buildroot}%{_datadir}/%{name}/bin/mvnyjp
 
 # helper scripts
 install -d -m 755 %{buildroot}%{_bindir}
-install -m 755 xmvn-tools/src/main/bin/tool-script \
-               %{buildroot}%{_datadir}/%{name}/bin/
-
 for tool in subst resolve bisect install;do
-    rm %{buildroot}%{_datadir}/%{name}/bin/%{name}-$tool
-    ln -s tool-script \
-          %{buildroot}%{_datadir}/%{name}/bin/%{name}-$tool
-
     cat <<EOF >%{buildroot}%{_bindir}/%{name}-$tool
 #!/bin/sh -e
 exec %{_datadir}/%{name}/bin/%{name}-$tool "\${@}"
 EOF
     chmod +x %{buildroot}%{_bindir}/%{name}-$tool
-
 done
 
 # copy over maven lib directory
@@ -107,30 +207,6 @@ cp -r %{_datadir}/maven/lib/* %{buildroot}%{_datadir}/%{name}/lib/
 
 # possibly recreate symlinks that can be automated with xmvn-subst
 %{name}-subst %{buildroot}%{_datadir}/%{name}/
-for jar in core connector;do
-    ln -sf %{_javadir}/%{name}/%{name}-$jar.jar %{buildroot}%{_datadir}/%{name}/lib
-done
-
-for tool in subst resolver bisect installer;do
-    # sisu doesn't contain pom.properties. Manually replace with symlinks
-    pushd %{buildroot}%{_datadir}/%{name}/lib/$tool
-        rm org.eclipse.sisu*jar sisu-guice*jar
-        build-jar-repository . org.eclipse.sisu.inject \
-                               org.eclipse.sisu.plexus \
-                               guice/google-guice-no_aop
-    popd
-done
-
-# workaround for rhbz#1012982
-rm %{buildroot}%{_datadir}/%{name}/lib/google-guice-no_aop.jar
-build-jar-repository %{buildroot}%{_datadir}/%{name}/lib/ \
-                     guice/google-guice-no_aop
-
-if [[ `find %{buildroot}%{_datadir}/%{name}/lib -type f -name '*.jar' -not -name '*%{name}*' | wc -l` -ne 0 ]];then
-    echo "Some jar files were not symlinked during build. Aborting"
-    exit 1
-fi
-
 
 # /usr/bin/xmvn script
 cat <<EOF >%{buildroot}%{_bindir}/%{name}
@@ -140,7 +216,9 @@ exec mvn "\${@}"
 EOF
 
 # make sure our conf is identical to maven so yum won't freak out
+install -d -m 755 %{buildroot}%{_datadir}/%{name}/conf/
 cp -P %{_datadir}/maven/conf/settings.xml %{buildroot}%{_datadir}/%{name}/conf/
+cp -P %{_datadir}/maven/bin/m2.conf %{buildroot}%{_datadir}/%{name}/bin/
 
 %pretrans -p <lua>
 -- we changed symlink to dir in 0.5.0-1, workaround RPM issues
@@ -151,17 +229,118 @@ for key, dir in pairs({"conf", "conf/logging", "boot"}) do
     end
 end
 
-%files -f .mfiles
+%files
+%attr(755,-,-) %{_bindir}/%{name}
+%dir %{_datadir}/%{name}/bin
+%dir %{_datadir}/%{name}/lib
+%{_datadir}/%{name}/lib/*.jar
+%{_datadir}/%{name}/lib/ext
+%{_datadir}/%{name}/bin/m2.conf
+%{_datadir}/%{name}/bin/mvn
+%{_datadir}/%{name}/bin/mvnDebug
+%{_datadir}/%{name}/bin/mvnyjp
+%{_datadir}/%{name}/bin/xmvn
+%{_datadir}/%{name}/boot
+%{_datadir}/%{name}/conf
+
+%files parent-pom -f .mfiles-xmvn-parent
+%doc LICENSE NOTICE
+
+%files launcher -f .mfiles-xmvn-launcher
+%dir %{_datadir}/%{name}/lib
+%{_datadir}/%{name}/lib/core
+
+%files core -f .mfiles-xmvn-core
+
+%files api -f .mfiles-xmvn-api
 %dir %{_javadir}/%{name}
 %doc LICENSE NOTICE
 %doc AUTHORS README
-%attr(755,-,-) %{_bindir}/*
-%{_datadir}/%{name}
+
+%files connector-aether -f .mfiles-xmvn-connector-aether
+
+%files connector-ivy -f .mfiles-xmvn-connector-ivy
+%dir %{_datadir}/%{name}/lib
+%{_datadir}/%{name}/lib/ivy
+
+%files mojo -f .mfiles-xmvn-mojo
+
+%files tools-pom -f .mfiles-xmvn-tools
+
+%files resolve -f .mfiles-xmvn-resolve
+%attr(755,-,-) %{_bindir}/%{name}-resolve
+%dir %{_datadir}/%{name}/bin
+%dir %{_datadir}/%{name}/lib
+%{_datadir}/%{name}/bin/%{name}-resolve
+%{_datadir}/%{name}/lib/resolver
+
+%files bisect -f .mfiles-xmvn-bisect
+%attr(755,-,-) %{_bindir}/%{name}-bisect
+%dir %{_datadir}/%{name}/bin
+%dir %{_datadir}/%{name}/lib
+%{_datadir}/%{name}/bin/%{name}-bisect
+%{_datadir}/%{name}/lib/bisect
+
+%files subst -f .mfiles-xmvn-subst
+%attr(755,-,-) %{_bindir}/%{name}-subst
+%dir %{_datadir}/%{name}/bin
+%dir %{_datadir}/%{name}/lib
+%{_datadir}/%{name}/bin/%{name}-subst
+%{_datadir}/%{name}/lib/subst
+
+%files install -f .mfiles-xmvn-install
+%attr(755,-,-) %{_bindir}/%{name}-install
+%dir %{_datadir}/%{name}/bin
+%dir %{_datadir}/%{name}/lib
+%{_datadir}/%{name}/bin/%{name}-install
+%{_datadir}/%{name}/lib/installer
 
 %files javadoc -f .mfiles-javadoc
 %doc LICENSE NOTICE
 
 %changelog
+* Wed Nov 26 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.1.0-6
+- Use topmost repository namespace during installation
+- Resolves: rhbz#1166743
+
+* Tue Oct 28 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.1.0-5
+- Fix conversion of Ivy to XMvn artifacts
+- Resolves: rhbz#1127804
+
+* Mon Oct 13 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.1.0-4
+- Fix FTBFS caused by new wersion of plexus-archiver
+
+* Wed Sep 24 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.1.0-3
+- Fix installation of attached Eclipse artifacts
+
+* Wed Sep 10 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.1.0-2
+- Avoid installing the same attached artifact twice
+
+* Thu Sep  4 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.1.0-1
+- Update to upstream version 2.1.0
+- Remove p2 subpackage
+
+* Fri Jun  6 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.0.1-1
+- Update to upstream version 2.0.1
+
+* Thu Jun  5 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.0.0-6
+- Bump Maven version in build-requires
+
+* Thu Jun  5 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.0.0-5
+- Add missing requires on subpackages
+
+* Fri May 30 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.0.0-4
+- Don't modify system properties during artifact resolution
+
+* Fri May 30 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.0.0-3
+- Add patch to support xmvn.resolver.disableEffectivePom property
+
+* Thu May 29 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.0.0-2
+- Add patch for injecting Javapackages manifests
+
+* Thu May 29 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 2.0.0-1
+- Update to upstream version 2.0.0
+
 * Tue Apr 22 2014 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.5.0-0.25.gitcb3a0a6
 - Use ASM 5.0.1 directly instead of Sisu-shaded ASM
 
@@ -384,4 +563,3 @@ end
 
 * Mon Nov  5 2012 Mikolaj Izdebski <mizdebsk@redhat.com> - 0-1
 - Initial packaging
-
