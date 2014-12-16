@@ -5,8 +5,9 @@
 
 Name:           xmvn
 Version:        2.1.0
-Release:        6%{?dist}
+Release:        8.1
 Summary:        Local Extensions for Apache Maven
+Group:		Development/Java
 License:        ASL 2.0
 URL:            http://mizdebsk.fedorapeople.org/xmvn
 BuildArch:      noarch
@@ -17,6 +18,8 @@ Patch0:         0001-Avoid-installing-the-same-attached-artifact-twice.patch
 Patch1:         0002-Fix-installation-of-attached-Eclipse-artifacts.patch
 Patch2:         0003-Fix-conversion-of-Ivy-to-XMvn-artifacts.patch
 Patch3:         0004-Use-topmost-repository-namespace-during-installation.patch
+Patch4:         0005-Ignore-any-system-dependencies-in-Tycho-projects.patch
+Patch5:         0006-Add-fully-qualified-osgi-version-to-install-plan-whe.patch
 
 BuildRequires:  maven >= 3.2.1-10
 BuildRequires:  maven-local
@@ -150,6 +153,8 @@ This package provides %{summary}.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
+%patch5 -p1
 
 %mvn_package :xmvn __noinstall
 
