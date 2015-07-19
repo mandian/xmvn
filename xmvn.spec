@@ -5,7 +5,7 @@
 
 Name:           xmvn
 Version:        2.1.0
-Release:        8.1
+Release:        8.2
 Summary:        Local Extensions for Apache Maven
 Group:		Development/Java
 License:        ASL 2.0
