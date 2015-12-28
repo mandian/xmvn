@@ -200,8 +200,8 @@ rm -Rf %{name}-%{version}*/{AUTHORS,README,LICENSE,NOTICE}
 
 %install
 
-export M2_HOME=/home/cris/xmvn
-export PATH=/home/cris/xmvn/bin:$PATH
+export M2_HOME=~/xmvn
+export PATH=~/xmvn/bin:$PATH
 
 %mvn_install
 
