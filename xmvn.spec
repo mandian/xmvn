@@ -5,7 +5,7 @@
 
 Name:           xmvn
 Version:        2.1.0
-Release:        8.2
+Release:        8.3
 Summary:        Local Extensions for Apache Maven
 Group:		Development/Java
 License:        ASL 2.0
@@ -178,6 +178,17 @@ rm -rf src/it
 sed -i 's|generated-site/resources/xsd/config|generated-site/xsd/config|' xmvn-core/pom.xml
 
 %build
+
+rm -Rf ~/xmvn ~/java
+cp -Rp /usr/share/xmvn ~
+ln -s /usr/share/java ~
+ln -s /usr/share/java/objectweb-asm/asm.jar ~/xmvn/lib
+ln -s /usr/share/java/objectweb-asm/asm.jar ~/xmvn/lib/installer/
+ln -s /usr/share/java/objectweb-asm/asm.jar ~/xmvn/lib/resolver/
+ln -s /usr/share/java/objectweb-asm/asm.jar ~/xmvn/lib/subst/
+
+export M2_HOME=~/xmvn
+
 # XXX some tests fail on ARM for unknown reason, see why
 %mvn_build -s -f
 
@@ -188,6 +199,10 @@ rm -Rf %{name}-%{version}*/{AUTHORS,README,LICENSE,NOTICE}
 
 
 %install
+
+export M2_HOME=/home/cris/xmvn
+export PATH=/home/cris/xmvn/bin:$PATH
+
 %mvn_install
 
 install -d -m 755 %{buildroot}%{_datadir}/%{name}
@@ -195,6 +210,12 @@ cp -r %{name}-%{version}*/* %{buildroot}%{_datadir}/%{name}/
 ln -sf %{_datadir}/maven/bin/mvn %{buildroot}%{_datadir}/%{name}/bin/mvn
 ln -sf %{_datadir}/maven/bin/mvnDebug %{buildroot}%{_datadir}/%{name}/bin/mvnDebug
 ln -sf %{_datadir}/maven/bin/mvnyjp %{buildroot}%{_datadir}/%{name}/bin/mvnyjp
+
+# XXX temp
+ln -s /usr/share/java/objectweb-asm/asm.jar %{buildroot}%{_datadir}/%{name}/lib/
+ln -s /usr/share/java/objectweb-asm/asm.jar %{buildroot}%{_datadir}/%{name}/lib/installer/
+ln -s /usr/share/java/objectweb-asm/asm.jar %{buildroot}%{_datadir}/%{name}/lib/resolver/
+ln -s /usr/share/java/objectweb-asm/asm.jar %{buildroot}%{_datadir}/%{name}/lib/subst/
 
 
 # helper scripts
