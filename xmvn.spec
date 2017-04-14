@@ -3,6 +3,8 @@
 # any additional bundles.
 %global __requires_exclude %{?__requires_exclude:%__requires_exclude|}^osgi\\($
 
+%bcond_without gradle
+
 Name:           xmvn
 Version:        2.1.0
 Release:        8.4
@@ -21,6 +23,12 @@ Patch3:         0004-Use-topmost-repository-namespace-during-installation.patch
 Patch4:         0005-Ignore-any-system-dependencies-in-Tycho-projects.patch
 Patch5:         0006-Add-fully-qualified-osgi-version-to-install-plan-whe.patch
 
+# Import Gradle connector (by upstreamer, adapted)
+# https://pagure.io/xmvn/c/64438a57367519c2c1d861f1ce1e01e819e19142?branch=master
+%if %{with gradle}
+Patch100:	xmvn-2.1.0-import_gradle_connector.patch
+%endif
+
 BuildRequires:  maven >= 3.2.1-10
 BuildRequires:  maven-local
 BuildRequires:  beust-jcommander
@@ -29,12 +37,17 @@ BuildRequires:  maven-dependency-plugin
 BuildRequires:  maven-plugin-build-helper
 BuildRequires:  maven-assembly-plugin
 BuildRequires:  maven-invoker-plugin
+BuildRequires:  maven-site-plugin
+BuildRequires:  xmvn-parent-pom
 BuildRequires:  objectweb-asm
 BuildRequires:  modello
 BuildRequires:  xmlunit
 BuildRequires:  apache-ivy
 BuildRequires:  sisu-mojos
 BuildRequires:  junit
+%if %{with gradle}
+BuildRequires:  gradle >= 2.2.1
+%endif
 
 Requires:       maven >= 3.2.2
 Requires:       xmvn-api = %{version}-%{release}
@@ -84,6 +97,16 @@ This package provides XMvn Connector for Eclipse Aether, which
 provides integration of Eclipse Aether with XMvn.  It provides an
 adapter which allows XMvn resolver to be used as Aether workspace
 reader.
+
+%if %{with gradle}
+%package        connector-gradle
+Summary:        XMvn Connector for Gradle
+
+%description    connector-gradle
+This package provides XMvn Connector for Gradle, which provides
+integration of Gradle with XMvn.  It provides an adapter which allows
+XMvn resolver to be used as Gradle resolver.
+%endif
 
 %package        connector-ivy
 Summary:        XMvn Connector for Apache Ivy
@@ -156,7 +179,13 @@ This package provides %{summary}.
 %patch4 -p1
 %patch5 -p1
 
+%patch100 -p1 -b.orig
+
 %mvn_package :xmvn __noinstall
+
+%if %{without gradle}
+%pom_disable_module xmvn-connector-gradle
+%endif
 
 # In XMvn 2.x xmvn-connector was renamed to xmvn-connector-aether
 %mvn_alias :xmvn-connector-aether :xmvn-connector
@@ -264,6 +293,10 @@ end
 %doc AUTHORS README
 
 %files connector-aether -f .mfiles-xmvn-connector-aether
+
+%if %{with gradle}
+%files connector-gradle -f .mfiles-xmvn-connector-gradle
+%endif
 
 %files connector-ivy -f .mfiles-xmvn-connector-ivy
 %dir %{_datadir}/%{name}/lib
