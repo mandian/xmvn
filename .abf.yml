@@ -1,3 +1,5 @@
-sources:
+removed_sources:
   xmvn-1.5.0-SNAPSHOT.tar.xz: b9ea7f5bfac0ee0f52ce89dbe06d8cbaa551caa6
   xmvn-2.1.0.tar.xz: 6f82ae609400a507de2460147c47d087256ba0b8
+sources:
+  xmvn-3.0.0.tar.xz: d887a65c5649459f513dd70c688b080e47afc691
