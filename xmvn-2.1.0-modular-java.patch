@@ -1,0 +1,9 @@
+diff -up xmvn-2.1.0/xmvn-tools/src/main/bin/tool-script.omv~ xmvn-2.1.0/xmvn-tools/src/main/bin/tool-script
+--- xmvn-2.1.0/xmvn-tools/src/main/bin/tool-script.omv~	2019-05-14 16:18:56.002865854 +0200
++++ xmvn-2.1.0/xmvn-tools/src/main/bin/tool-script	2019-05-14 16:19:44.500535158 +0200
+@@ -78,4 +78,4 @@ for jar in "${home}/lib/${tool}"/*; do
+ done
+ 
+ # 4. Execute the tool
+-exec java -classpath "${cp}" "${class}" "${@}"
++exec java -p /usr/share/java/modules --add-modules org.objectweb.asm,java.inject,org.codehaus.plexus.util -classpath "${cp}" "${class}" "${@}"

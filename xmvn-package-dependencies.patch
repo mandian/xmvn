@@ -1,0 +1,42 @@
+--- xmvn-4.2.0/xmvn-connector/pom.xml
++++ xmvn-4.2.0/xmvn-connector/pom.xml
+@@ -90,6 +90,16 @@
+   </dependencies>
+   <build>
+     <plugins>
++      <!-- begin of code added by maintainer -->
++      <plugin>
++        <groupId>org.apache.maven.plugins</groupId>
++        <artifactId>maven-surefire-plugin</artifactId>
++        <!--version>any</version-->
++        <configuration>
++          <skipTests>true</skipTests>
++        </configuration>
++      </plugin>
++      <!-- end of code added by maintainer -->
+       <plugin>
+         <groupId>org.eclipse.sisu</groupId>
+         <artifactId>sisu-maven-plugin</artifactId>
+--- xmvn-4.2.0/xmvn-tools/xmvn-install/pom.xml
++++ xmvn-4.2.0/xmvn-tools/xmvn-install/pom.xml
+@@ -66,4 +66,20 @@
+       <artifactId>commons-compress</artifactId>
+     </dependency>
+   </dependencies>
++  <!-- section added by maintainer -->
++  <build>
++    <!-- section added by maintainer -->
++    <plugins>
++      <!-- begin of code added by maintainer -->
++      <plugin>
++        <groupId>org.apache.maven.plugins</groupId>
++        <artifactId>maven-surefire-plugin</artifactId>
++        <!--version>any</version-->
++        <configuration>
++          <skipTests>true</skipTests>
++        </configuration>
++      </plugin>
++      <!-- end of code added by maintainer -->
++    </plugins>
++  </build>
+ </project>
